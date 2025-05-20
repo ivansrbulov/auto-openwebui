@@ -1,116 +1,98 @@
-# Open WebUI with Ollama and Cloudflare
+# Ollama Server with Open WebUI and Cloudflare Tunnel
 
-A bash script to automate running Open WebUI on Linux systems with Ollama and Cloudflare via Docker. The script currently works on Debian 12 with an AMD Radeon 7900XTX -- YMMV with other setups.
+This repository provides a streamlined setup for running an Ollama server with Open WebUI, securely accessible over the internet through a Cloudflare tunnel.
 
-## Features
+## Overview
 
-- One-command setup for an Open WebUI + Ollama environment
-- GPU acceleration support for both AMD (ROCm) and NVIDIA (CUDA) graphics cards
-- Remote access capability through Cloudflare Tunnel
-- Automatic updates via Watchtower
-- Container-based isolation for clean installation and removal
+This setup script automates the deployment of:
 
-## Dependencies
+1. **Ollama** - A local LLM server with ROCm support for AMD GPUs
+2. **Open WebUI** - A user-friendly web interface for interacting with Ollama models
+3. **Cloudflare Tunnel** - Secure remote access without exposing your local network
+4. **Watchtower** - Automatic updates for the Open WebUI container
 
-### Required Software
-- Docker Engine
-- ROCm drivers (for AMD GPU support) or CUDA drivers (for NVIDIA GPU support)
-- Cloudflare account (for the tunnel functionality)
+## Requirements
 
-### Installing Dependencies on Debian/Ubuntu
+- Docker and Docker Compose installed on your system
+- A Cloudflare account with a tunnel token
+- Your local IP address
+- AMD GPU with ROCm support (the setup uses the ROCm image for Ollama)
 
-#### 1. Install Docker Engine
-I prefer to avoid the desktop version of Docker and go with Docker Engine. To install:
+## Quick Start
 
-Follow the steps in the official ["Install Docker Engine"](https://docs.docker.com/engine/install/) documentation.
-
-#### 2a. For AMD GPU Support (ROCm)
-Follow the steps in AMD's ["Quick start installation guide"](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/quick-start.html).
-
-#### 2b. For NVIDIA GPU Support (CUDA)
-Follow the steps in NVIDIA's ["NVIDIA CUDA Installation Guide for Linux"](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/).
-
-## Setup
-
-1. Clone the repo:
+1. Clone this repository
+2. Run the setup script:
    ```bash
-   git clone https://github.com/ivansrbulov/auto-openwebui.git
-   cd auto-openwebui
+   chmod +x setup.sh
+   ./setup.sh
    ```
+3. Follow the prompts to enter your local IP address and Cloudflare tunnel token
 
-2. Rename `exampleenv` to `.env` and set the variables:
-   ```bash
-   cp exampleenv .env
-   nano .env  # or use your preferred text editor
-   ```
-   
-   In the .env file:
-   ```
-   # Replace with your actual Cloudflare Tunnel token
-   CLOUDFLARED_KEY=your_cloudflare_tunnel_token
-   
-   # Replace with your server's local IP address (e.g., http://192.168.1.100:3000)
-   LOCAL_IP=http://your_server_ip:3000
-   ```
+## What the Script Does
 
-3. If using an NVIDIA GPU, modify the `run.sh` script:
-   - Replace `--device /dev/kfd --device /dev/dri \` with `--gpus=all`
-   - Replace `ollama/ollama:rocm` with `ollama/ollama:main`
+The `setup.sh` script:
 
-4. Make the script executable:
-   ```bash
-   chmod +x run.sh
-   ```
+- Creates a `.env` file with your configuration
+- Generates a `docker-compose.yml` file with services properly configured
+- Stops and removes any existing containers with the same names
+- Starts all services using Docker Compose
+- Logs all actions to a timestamped file in the `logs/` directory
 
-5. Run the script:
-   ```bash
-   ./run.sh
-   ```
+## Service Configuration
 
-6. Optional: delete the .git folder if you don't need version control:
-   ```bash
-   rm -rf .git
-   ```
+### Ollama
+- Uses the ROCm-enabled image for AMD GPU support
+- Exposes port 11434
+- Persists models and data in a Docker volume
 
-## What Happens When You Run the Script
+### Open WebUI
+- Provides a modern interface for managing and using LLMs
+- Accessible locally at http://localhost:3000
+- Persists data in a Docker volume
 
-The script performs the following actions:
-1. Stops and removes any existing containers with the same names
-2. Creates a Docker network bridge
-3. Runs the Ollama container with GPU device passthrough
-4. Runs the Open WebUI container on port 3000
-5. Runs the Cloudflare tunnel container for remote access
-6. Sets up Watchtower for automatic updates of the Open WebUI container
+### Cloudflare Tunnel
+- Creates a secure tunnel to your Open WebUI
+- No port forwarding or public IP required
+- Access your LLM server securely from anywhere
 
-## Accessing the UI
+### Watchtower
+- Automatically checks for and applies updates to Open WebUI
+- Runs checks every 300 seconds
 
-After running the script:
-- **Local access**: http://localhost:3000
-- **Remote access**: Through your Cloudflare Tunnel URL (check your Cloudflare dashboard)
+## Usage
+
+After setup is complete:
+
+1. Access Open WebUI locally at http://localhost:3000
+2. Access remotely through your Cloudflare tunnel URL
+3. Pull models through the Open WebUI interface
+
+## Managing Your Deployment
+
+- **View logs**: `docker-compose logs -f`
+- **Stop services**: `docker-compose down`
+- **Restart services**: `docker-compose restart`
+- **Update configuration**: Edit `.env` file and restart services
 
 ## Troubleshooting
 
-If you encounter any issues:
+- Check the logs directory for detailed setup logs
+- Ensure your Cloudflare tunnel token is valid
+- Verify that your local IP address is correct
+- Make sure that ports 11434 and 3000 are not in use by other services
 
-1. Check container status:
-   ```bash
-   docker ps -a
-   ```
+## Security Considerations
 
-2. View container logs:
-   ```bash
-   docker logs ollama
-   docker logs open-webui
-   docker logs cloudflared
-   ```
+- The Cloudflare tunnel provides secure access without exposing local ports
+- Consider setting up authentication in Open WebUI for additional security
+- Model weights are stored locally in Docker volumes
 
-3. Ensure your GPU is properly recognized:
-   - For AMD: `rocminfo`
-   - For NVIDIA: `nvidia-smi`
+## Contributors
 
-4. If containers fail to start, check your `.env` file for correct values
+With thanks to [Synthetic451](https://www.reddit.com/user/Synthetic451/) and [throwawayacc201711](https://www.reddit.com/user/throwawayacc201711/) on Reddit for their feedback and suggestions!
 
-5. Make sure ports are not already in use:
-   ```bash
-   sudo lsof -i :3000
-   sudo lsof -i :11434
+## Acknowledgements
+
+- [Ollama](https://github.com/ollama/ollama)
+- [Open WebUI](https://github.com/open-webui/open-webui)
+- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
