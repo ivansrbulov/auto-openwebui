@@ -1,6 +1,6 @@
-# Ollama Server with Open WebUI and Cloudflare Tunnel
+# Automatic Ollama with Open WebUI and Cloudflare Tunnel
 
-This repository provides a streamlined setup for running an Ollama server with Open WebUI, securely accessible over the internet through a Cloudflare tunnel.
+A bash script to automate running Open WebUI on Linux systems with Ollama and Cloudflare via Docker 
 
 ## Overview
 
