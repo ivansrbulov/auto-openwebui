@@ -2,6 +2,10 @@
 
 This repository provides a streamlined setup for running an Ollama server with Open WebUI, securely accessible over the internet through a Cloudflare tunnel.
 
+## Compatibility
+
+This script is confirmed to work on Debian 12 with a 7900XTX. Other distros and GPUs may work but is not (yet!) confirmed. If anybody else is able to test this and let me know then please do!
+
 ## Overview
 
 This setup script automates the deployment of:
