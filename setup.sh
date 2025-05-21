@@ -83,8 +83,6 @@ services:
     restart: always
     networks:
       - docker_bridge
-    environment:
-      - OLLAMA_BASE_URL=http://host.docker.internal
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -98,6 +96,8 @@ services:
       - docker_bridge
     depends_on:
       - ollama
+    environment:
+      - OLLAMA_BASE_URL=http://$LOCAL_IP:11434
 
   cloudflared:
     image: cloudflare/cloudflared:latest

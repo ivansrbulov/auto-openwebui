@@ -1,6 +1,6 @@
-# Automatic Ollama with Open WebUI and Cloudflare Tunnel
+# Ollama Server with Open WebUI and Cloudflare Tunnel
 
-A bash script to automate running Open WebUI on Linux systems with Ollama and Cloudflare via Docker 
+This repository provides a streamlined setup for running an Ollama server with Open WebUI, securely accessible over the internet through a Cloudflare tunnel.
 
 ## Overview
 
@@ -27,6 +27,8 @@ This setup script automates the deployment of:
    ./setup.sh
    ```
 3. Follow the prompts to enter your local IP address and Cloudflare tunnel token
+
+4. Once logged into Open WebUI, go to Admin Panel -> Settings -> Connections -> and under "Manage Ollama API Connections" that you replace `http://host.docker.internal:11434` with `http://<your-local-ip>:11434`; it may already be listed there. Delete `http://host.docker.internal:11434`.
 
 ## What the Script Does
 
