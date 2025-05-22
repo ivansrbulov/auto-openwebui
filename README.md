@@ -32,7 +32,7 @@ This setup script automates the deployment of:
    ```
 3. Follow the prompts to enter your local IP address and Cloudflare tunnel token
 
-4. Once logged into Open WebUI, go to Admin Panel -> Settings -> Connections -> and under "Manage Ollama API Connections" that you replace `http://host.docker.internal:11434` with `http://<your-local-ip>:11434`; it may already be listed there. Delete `http://host.docker.internal:11434`.
+4. Once logged into Open WebUI, go to Admin Panel -> Settings -> Connections -> and under "Manage Ollama API Connections" replace `http://host.docker.internal:11434` with `http://<your-local-ip>:11434`; it may already be listed there. Delete `http://host.docker.internal:11434`.
 
 ## What the Script Does
 
