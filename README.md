@@ -20,34 +20,39 @@ This setup script automates the deployment of:
 - Docker and Docker Compose installed on your system
 - A Cloudflare account with a tunnel token
 - Your local IP address
-- AMD GPU with ROCm support (the setup uses the ROCm image for Ollama)
+- AMD GPU with ROCm support or NVIDIA GPU with CUDA support (the setup uses appropriate images for Ollama based on your choice)
 
 ## Quick Start
 
 1. Clone this repository
+   ```bash
+   git clone https://github.com/yourusername/auto-openwebui.git
+   cd auto-openwebui
+   ```
+
 2. Run the setup script:
    ```bash
    chmod +x setup.sh
    ./setup.sh
    ```
-3. Follow the prompts to enter your local IP address and Cloudflare tunnel token
+The setup script will:
+- Create a `.env` file with your configuration
+- Generate a `docker-compose.yml` file with services properly configured
+- Stop and remove any existing containers with the same names
+- Log all actions to a timestamped file in the `logs/` directory
 
-4. Once logged into Open WebUI, go to Admin Panel -> Settings -> Connections -> and under "Manage Ollama API Connections" replace `http://host.docker.internal:11434` with `http://<your-local-ip>:11434`; it may already be listed there. Delete `http://host.docker.internal:11434`.
+3. After setup, you can start or stop the services by running:
+   ```bash
+   docker compose up -d
+   docker compose down
+   ```
 
-## What the Script Does
-
-The `setup.sh` script:
-
-- Creates a `.env` file with your configuration
-- Generates a `docker-compose.yml` file with services properly configured
-- Stops and removes any existing containers with the same names
-- Starts all services using Docker Compose
-- Logs all actions to a timestamped file in the `logs/` directory
+4. Once logged into Open WebUI, go to Admin Panel -> Settings -> Connections -> and under "Manage Ollama API Connections" replace `http://host.docker.internal:11434` with `http://<your-local-ip>:11434`; it may already be listed there. Delete `http://host.docker.internal:11434` if it exists.
 
 ## Service Configuration
 
 ### Ollama
-- Uses the ROCm-enabled image for AMD GPU support
+- Uses the ROCm-enabled image for AMD GPU support or the main CUDA-enabled image for NVIDIA GPU support
 - Exposes port 11434
 - Persists models and data in a Docker volume
 
@@ -73,6 +78,8 @@ After setup is complete:
 2. Access remotely through your Cloudflare tunnel URL
 3. Pull models through the Open WebUI interface
 
+It's fine to run `./setup.sh` to automate the setup process again if needed. But if there are no changes it is probably better to manage your deployment as below instead.
+
 ## Managing Your Deployment
 
 - **View logs**: `docker-compose logs -f`
@@ -87,18 +94,6 @@ After setup is complete:
 - Verify that your local IP address is correct
 - Make sure that ports 11434 and 3000 are not in use by other services
 
-## Security Considerations
-
-- The Cloudflare tunnel provides secure access without exposing local ports
-- Consider setting up authentication in Open WebUI for additional security
-- Model weights are stored locally in Docker volumes
-
 ## Contributors
 
 With thanks to [Synthetic451](https://www.reddit.com/user/Synthetic451/) and [throwawayacc201711](https://www.reddit.com/user/throwawayacc201711/) on Reddit for their feedback and suggestions!
-
-## Acknowledgements
-
-- [Ollama](https://github.com/ollama/ollama)
-- [Open WebUI](https://github.com/open-webui/open-webui)
-- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
