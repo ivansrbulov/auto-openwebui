@@ -5,80 +5,12 @@
 
 # Function to log messages
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+    echo "[INFO] $1"
 }
 
-log "Starting setup process..."
-
-# Create a directory for logs
-mkdir -p logs
-LOG_FILE="logs/setup_$(date '+%Y%m%d_%H%M%S').log"
-exec > >(tee -a "$LOG_FILE") 2>&1
-
-# Check if .env file exists and ask to overwrite
-if [ -f .env ]; then
-    log ".env file found. Checking for completeness..."
-
-    # Read the .env file into variables
-    source .env
-
-    # Define required environment variables
-    REQUIRED_VARS=(LOCAL_IP CLOUDFLARED_KEY)
-
-    # Check if all required variables are set in .env
-    INCOMPLETE=false
-    for var in "${REQUIRED_VARS[@]}"; do
-        if [ -z "${!var}" ]; then
-            log "Missing variable: $var"
-            INCOMPLETE=true
-        fi
-    done
-
-    # If any required variables are missing, prompt to overwrite
-    if $INCOMPLETE; then
-        read -p ".env file is incomplete. Overwrite it? (y/n): " overwrite
-        if [[ $overwrite != "y" && $overwrite != "Y" ]]; then
-            log "Using existing .env file"
-        else
-            # Get required information
-            log "Creating new .env file..."
-            rm -f .env
-            touch .env
-
-            # Ask for local IP address
-            read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
-            echo "LOCAL_IP=$LOCAL_IP" >> .env
-            log "Local IP set to: $LOCAL_IP"
-
-            # Ask for Cloudflared token
-            read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
-            echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
-            log "Cloudflared token saved to .env file"
-        fi
-    else
-        # If all required variables are set, prompt to use existing .env or overwrite it
-        read -p ".env file is complete. Use the existing one? (y/n): " use_existing
-        if [[ $use_existing != "y" && $use_existing != "Y" ]]; then
-            log "Creating new .env file..."
-            rm -f .env
-            touch .env
-
-            # Ask for local IP address
-            read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
-            echo "LOCAL_IP=$LOCAL_IP" >> .env
-            log "Local IP set to: $LOCAL_IP"
-
-            # Ask for Cloudflared token
-            read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
-            echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
-            log "Cloudflared token saved to .env file"
-        else
-            log "Using existing .env file"
-        fi
-    fi
-
-else
-    # Get required information
+# Check if .env file exists
+if [[ ! -f ".env" ]]; then
+    # Create new .env file
     log "Creating .env file..."
     touch .env
 
@@ -91,6 +23,29 @@ else
     read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
     echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
     log "Cloudflared token saved to .env file"
+else
+    # If .env exists, check if all required variables are set
+    if grep -q "LOCAL_IP=" .env && grep -q "CLOUDFLARED_KEY=" .env; then
+        log "Using existing .env file with complete configuration."
+    else
+        read -p ".env file is incomplete. Recreate it? (y/n): " recreate_env
+        if [[ $recreate_env == "y" || $recreate_env == "Y" ]]; then
+            rm -f .env
+            touch .env
+
+            # Ask for local IP address again
+            read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
+            echo "LOCAL_IP=$LOCAL_IP" >> .env
+            log "Local IP set to: $LOCAL_IP"
+
+            # Ask for Cloudflared token again
+            read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
+            echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
+            log "Cloudflared token saved to .env file"
+        else
+            log "Using existing incomplete .env file."
+        fi
+    fi
 fi
 
 # Source the .env file to get variables
