@@ -17,26 +17,66 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Check if .env file exists and ask to overwrite
 if [ -f .env ]; then
-    read -p "An .env file already exists. Overwrite it? (y/n): " overwrite
-    if [[ $overwrite != "y" && $overwrite != "Y" ]]; then
-        log "Using existing .env file"
-        source .env
+    log ".env file found. Checking for completeness..."
+
+    # Read the .env file into variables
+    source .env
+
+    # Define required environment variables
+    REQUIRED_VARS=(LOCAL_IP CLOUDFLARED_KEY)
+
+    # Check if all required variables are set in .env
+    INCOMPLETE=false
+    for var in "${REQUIRED_VARS[@]}"; do
+        if [ -z "${!var}" ]; then
+            log "Missing variable: $var"
+            INCOMPLETE=true
+        fi
+    done
+
+    # If any required variables are missing, prompt to overwrite
+    if $INCOMPLETE; then
+        read -p ".env file is incomplete. Overwrite it? (y/n): " overwrite
+        if [[ $overwrite != "y" && $overwrite != "Y" ]]; then
+            log "Using existing .env file"
+        else
+            # Get required information
+            log "Creating new .env file..."
+            rm -f .env
+            touch .env
+
+            # Ask for local IP address
+            read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
+            echo "LOCAL_IP=$LOCAL_IP" >> .env
+            log "Local IP set to: $LOCAL_IP"
+
+            # Ask for Cloudflared token
+            read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
+            echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
+            log "Cloudflared token saved to .env file"
+        fi
     else
-        # Get required information
-        log "Creating new .env file..."
-        rm -f .env
-        touch .env
+        # If all required variables are set, prompt to use existing .env or overwrite it
+        read -p ".env file is complete. Use the existing one? (y/n): " use_existing
+        if [[ $use_existing != "y" && $use_existing != "Y" ]]; then
+            log "Creating new .env file..."
+            rm -f .env
+            touch .env
 
-        # Ask for local IP address
-        read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
-        echo "LOCAL_IP=$LOCAL_IP" >> .env
-        log "Local IP set to: $LOCAL_IP"
+            # Ask for local IP address
+            read -p "Enter your local IP address (e.g., 192.168.1.100): " LOCAL_IP
+            echo "LOCAL_IP=$LOCAL_IP" >> .env
+            log "Local IP set to: $LOCAL_IP"
 
-        # Ask for Cloudflared token
-        read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
-        echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
-        log "Cloudflared token saved to .env file"
+            # Ask for Cloudflared token
+            read -p "Enter your Cloudflared tunnel token: " CLOUDFLARED_KEY
+            echo "CLOUDFLARED_KEY=$CLOUDFLARED_KEY" >> .env
+            log "Cloudflared token saved to .env file"
+        else
+            log "Using existing .env file"
+        fi
     fi
+
 else
     # Get required information
     log "Creating .env file..."
@@ -136,10 +176,3 @@ else
     log "ERROR: Failed to start services. Check the logs above for details."
     exit 1
 fi
-
-# Print success message and next steps
-log "Setup completed successfully!"
-log "You can access the Open WebUI at http://localhost:3000"
-log "Your Cloudflare tunnel should be active and connecting to: $LOCAL_IP"
-log "To view logs, run: docker-compose logs -f"
-log "To stop all services, run: docker-compose down"
