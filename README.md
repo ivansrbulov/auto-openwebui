@@ -26,7 +26,7 @@ This setup script automates the deployment of:
 
 1. Clone this repository
    ```bash
-   git clone https://github.com/yourusername/auto-openwebui.git
+   git clone https://github.com/ivansrbulov/auto-openwebui.git
    cd auto-openwebui
    ```
 
