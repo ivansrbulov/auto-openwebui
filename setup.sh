@@ -51,6 +51,24 @@ fi
 # Source the .env file to get variables
 source .env
 
+# Ask for GPU type
+read -p "Is your system using an NVIDIA or AMD GPU? (Enter 'nvidia' or 'amd'): " GPU_TYPE
+
+# Set Ollama image based on GPU type
+if [ "$GPU_TYPE" == "nvidia" ]; then
+    OLLAMA_IMAGE="ollama/ollama:main"
+    DEVICE_SETTINGS="- driver: nvidia
+      - count: all
+      - capabilities: [gpu]"
+elif [ "$GPU_TYPE" == "amd" ]; then
+    OLLAMA_IMAGE="ollama/ollama:rocm"
+    DEVICE_SETTINGS="- /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri"
+else
+    log "ERROR: Invalid GPU type. Please enter 'nvidia' or 'amd'."
+    exit 1
+fi
+
 # Create docker-compose.yml file
 log "Creating docker-compose.yml file..."
 cat > docker-compose.yml << EOL
@@ -66,15 +84,14 @@ volumes:
 
 services:
   ollama:
-    image: ollama/ollama:rocm
+    image: $OLLAMA_IMAGE
     container_name: ollama
     volumes:
       - ollama:/root/.ollama
     ports:
       - "11434:11434"
     devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
+      $DEVICE_SETTINGS
     restart: always
     networks:
       - docker_bridge
